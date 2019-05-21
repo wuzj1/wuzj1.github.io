@@ -78,6 +78,7 @@ suicide_per_df %>% ggplot(mapping=aes(x= year, y = suicide_per_100, col = sex)) 
        y = "Suicide number per 100k") +  geom_point() +geom_smooth(method = lm) + 
   scale_x_continuous(breaks = seq(1985, 2015, 5), minor_breaks = F)
 ```
+
 male have a higher suicide number,female keep decreasing, and male first increase then decrease
 
 Does sex and years old all correlated with suicide?
@@ -87,6 +88,7 @@ summarize(suicide_per_100k = (sum(suicides_no) / sum(population)) * 100000)
 fit <- aov(formula = suicide_per_100k~age+sex, data = temp)
 summary(fit)
 ```
+
 We find that both p value is less than 0.05, so we can't reject there is no relationship of sex and age with suicide, and because the F value of sex is higher, sex impact more than age
 
 
@@ -104,6 +106,7 @@ ggplot(country, aes(x = country, y = suicide_per_100k)) +
   geom_bar(stat = "identity") + 
 coord_flip()+ theme(legend.position = "bottom")
 ```
+
 seems like the top 10 highest country is relatively poor, we go to explore the GDP per capita vs suicide rate.
 
 ```{r}
@@ -119,6 +122,7 @@ ggplot(country_mean_gdp, aes(x = gdp_per_capita, y = suicide_per_100k)) +
        x = "GDP per capita", 
        y = "Suicides per 100k") 
 ```
+
 seems like have slight linear relation, let's generate a linear fit for that
 
 ```{r}
@@ -126,6 +130,7 @@ Auto_fit <- lm(suicide_per_100k ~gdp_per_capita, data = country_mean_gdp)
 Auto_fit
 summary(Auto_fit)
 ```
+
 pvalue is 0.4544 > 0.05, so we don't reject the assumption that there is no relation between gdp per capita and suicide rate.
 
 To summarize, suicide rate is highly related with sex and years old, but no highly related with gdp per capita
