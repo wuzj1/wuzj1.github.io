@@ -21,6 +21,8 @@ suicide %>% group_by(generation) %>% summarize(number = n())  %>% ggplot(mapping
 ```
 we find that Generation Z and G.I Generation is particularly low, other generation almost the same
 
+Then what about year with suicide?
+
 ```{r}
 suicide %>% group_by(year) %>% summarize(number = sum(suicides_no)) %>% ggplot(mapping=aes(x= year, y = number)) +  geom_bar(stat="identity") +  labs(
        title = "Relation year and suicide.",
@@ -38,7 +40,9 @@ suicide_per_df %>% ggplot(mapping=aes(x= year, y = suicide_per_100)) +  geom_poi
        y = "Suicide per 100k")
 ```
 
-a  general trend of decreasingz
+a general trend of decreasing of suicide
+
+maybe that is related to age because as people's life is prolong nowadays, people may not willing to death
 ```{r}
 suicide_per_df <- suicide %>% group_by(age) %>% summarize(pop = sum(population), number = sum(suicides_no), suicide_per_100 = (number/pop) * 100000)
 suicide_per_df %>% ggplot(mapping=aes(x= age, y = suicide_per_100)) +  geom_bar(stat="identity") + labs(
@@ -47,12 +51,18 @@ suicide_per_df %>% ggplot(mapping=aes(x= age, y = suicide_per_100)) +  geom_bar(
        y = "Suicide number per 100k") 
 
 suicide_per_df <- suicide %>% group_by(age,year) %>% summarize(pop = sum(population), number = sum(suicides_no), suicide_per_100 = (number/pop) * 100000)
-suicide_per_df  %>% ggplot(mapping=aes(x= age, y = suicide_per_100)) +  facet_grid(age~year) + labs(
+suicide_per_df  %>% ggplot(mapping=aes(x= year, y = suicide_per_100,col = age)) +  facet_grid(age~year, scales = "free_y") + labs(
        title = "Trend over time and age.",
        x = "Age", 
-       y = "Suicide number per 100k") +  geom_point() +geom_smooth(method = lm)
-````
+       y = "Suicide number per 100k") +  geom_point() +geom_smooth(method = lm) + 
+  theme(legend.position = "none") + 
+  scale_x_continuous(breaks = seq(1985, 2015, 5), minor_breaks = F)
 
+```
+
+Well, just opposite to my hypothesis, 75+ years old is most prone to suicide,but the trend for suicide is decreasing, expect for 5-14 year old, it is increasing maybe because of the increasing peer pressure
+
+Then how does it related to sex?
 
 ```{r}
 suicide %>% group_by(sex) %>% summarize(number = sum(suicides_no))  %>% ggplot(mapping=aes(x= sex, y = number)) + 
@@ -62,14 +72,15 @@ suicide %>% group_by(sex) %>% summarize(number = sum(suicides_no))  %>% ggplot(m
        y = "Suicide number") + geom_bar(stat="identity")
 
 suicide_per_df <- suicide %>% group_by(sex,year) %>% summarize(pop = sum(population), number = sum(suicides_no), suicide_per_100 = (number/pop) * 100000)
-suicide_per_df %>% ggplot(mapping=aes(x= sex, y = suicide_per_100)) +  facet_grid(sex~year) + labs(
+suicide_per_df %>% ggplot(mapping=aes(x= year, y = suicide_per_100, col = sex)) +  facet_grid(sex~year, scales = "free_y") + labs(
        title = "Trend over time and sex.",
        x = "Year", 
-       y = "Suicide number per 100k") +  geom_point() +geom_smooth(method = lm)
+       y = "Suicide number per 100k") +  geom_point() +geom_smooth(method = lm) + 
+  scale_x_continuous(breaks = seq(1985, 2015, 5), minor_breaks = F)
 ```
-male have a higher suicide number
+male have a higher suicide number,female keep decreasing, and male first increase then decrease
 
-how does sex and age affect each other?
+Does sex and years old all correlated with suicide?
 ```{r}
 temp <- suicide %>% group_by(year,sex,age) %>% 
 summarize(suicide_per_100k = (sum(suicides_no) / sum(population)) * 100000)
@@ -93,7 +104,7 @@ ggplot(country, aes(x = country, y = suicide_per_100k)) +
   geom_bar(stat = "identity") + 
 coord_flip()+ theme(legend.position = "bottom")
 ```
-seems like the top 10 highest country is relatively poor, we go to explore the GDP vs suicide rate.
+seems like the top 10 highest country is relatively poor, we go to explore the GDP per capita vs suicide rate.
 
 ```{r}
 country_mean_gdp <- suicide %>%
@@ -108,6 +119,7 @@ ggplot(country_mean_gdp, aes(x = gdp_per_capita, y = suicide_per_100k)) +
        x = "GDP per capita", 
        y = "Suicides per 100k") 
 ```
+seems like have slight linear relation, let's generate a linear fit for that
 
 ```{r}
 Auto_fit <- lm(suicide_per_100k ~gdp_per_capita, data = country_mean_gdp)
@@ -116,3 +128,16 @@ summary(Auto_fit)
 ```
 pvalue is 0.4544 > 0.05, so we don't reject the assumption that there is no relation between gdp per capita and suicide rate.
 
+To summarize, suicide rate is highly related with sex and years old, but no highly related with gdp per capita
+
+Here is some reference more about suicides:
+I find data from https://www.kaggle.com/russellyates88/suicide-rates-overview-1985-to-2016,
+
+and some other reference will be 
+United Nations Development Program. (2018). Human development index (HDI). Retrieved from http://hdr.undp.org/en/indicators/137506
+
+World Bank. (2018). World development indicators: GDP (current US$) by country:1985 to 2016. Retrieved from http://databank.worldbank.org/data/source/world-development-indicators#
+
+[Szamil]. (2017). Suicide in the Twenty-First Century [dataset]. Retrieved from https://www.kaggle.com/szamil/suicide-in-the-twenty-first-century/notebook
+
+World Health Organization. (2018). Suicide prevention. Retrieved from http://www.who.int/mental_health/suicide-prevention/en/
